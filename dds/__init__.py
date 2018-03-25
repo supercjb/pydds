@@ -160,6 +160,8 @@ DDS_GROUPDATA_QOS_POLICY_ID = 19
 DDS_TRANSPORTPRIORITY_QOS_POLICY_ID = 20
 DDS_LIFESPAN_QOS_POLICY_ID = 21
 DDS_DURABILITYSERVICE_QOS_POLICY_ID = 22
+# extras
+DDS_DURABILITYSERVICE_CLEANUPDELAY_QOS_POLICY_ID = 1001
 
 #
 # QoS Kinds
@@ -283,6 +285,15 @@ class AutoInstanceDispose(Policy):
         Policy.__init__(self, DDS_WRITERDATALIFECYCLE_QOS_POLICY_ID)
         self.auto_dispose = True
 
+class ServiceCleanupDelay(Policy):
+    def __init__(self, delay):
+        Policy.__init__(self, DDS_DURABILITYSERVICE_CLEANUPDELAY_QOS_POLICY_ID, None)
+        self.cleanup_delay = delay
+        
+class DurabilityService(Policy):
+    def __init__(self, ps):
+        Policy.__init__(self, DDS_DURABILITYSERVICE_QOS_POLICY_ID, None)
+        self.durability_service = ps
 
 the_runtime = None
 
@@ -866,6 +877,9 @@ class Runtime:
         self.ddslib.dds_qset_ownership_strength.restype = None
         self.ddslib.dds_qset_ownership_strength.argtypes = [c_void_p, c_uint32]
 
+        self.ddslib.dds_qset_durability_service.restype = None
+        self.ddslib.dds_qset_durability_service.argtypes = [c_void_p, c_int64, c_uint32, c_int32, c_int32, c_int32, c_int32]
+
         # -- read / take --
         self.ddslib.dds_read.restype = c_int
         self.ddslib.dds_read.argtypes = [c_void_p, POINTER(c_void_p), c_uint32, POINTER(SampleInfo), c_uint32]
@@ -972,6 +986,17 @@ class Runtime:
                     self.ddslib.dds_qset_ownership_strength(qos, p.strength)
             elif p.id == DDS_WRITERDATALIFECYCLE_QOS_POLICY_ID:
                 self.ddslib.dds_qset_writer_data_lifecycle(qos, p.auto_dispose)
+            elif p.id == DDS_DURABILITYSERVICE_QOS_POLICY_ID:
+                cleanup_delay = 0
+                kind = DDS_HISTORY_KEEP_LAST
+                depth = 1
+                for p1 in p.durability_service:
+                    if p1.id == DDS_DURABILITYSERVICE_CLEANUPDELAY_QOS_POLICY_ID:
+                        cleanup_delay = p1.cleanup_delay;
+                    elif p1.id == DDS_HISTORY_QOS_POLICY_ID:
+                        kind = p1.kind
+                        depth = p1.depth
+                self.ddslib.dds_qset_durability_service(qos, cleanup_delay, kind, depth, -1, -1, -1)
         return qos
 
 
