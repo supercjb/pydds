@@ -38,7 +38,7 @@ def testDynaTypes():
     t = FlexyTopic(dp, 'KeyValue', None, [Reliable(),TransientLocal(), DurabilityService([KeepLastHistory(10)])])
     s = Subscriber(dp, [Partition(['dds-python.demo'])])
 
-    dr = FlexyReader(s, t, [Reliable(), TransientLocal(), KeepLastHistory(10)], None)
+    dr = FlexyReader(s, t, [Reliable(), TransientLocal(), KeepLastHistory(1)], None)
 
     dr.wait_history(dds_secs(2))
 
