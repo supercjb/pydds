@@ -41,10 +41,10 @@ if __name__ == '__main__':
     print("Reliable id = {0}".format(Reliable().id))
     print("KeepLastHistory id = {0}".format(KeepLastHistory(1).id))
     # 'VehiclePosition'
-    t = FlexyTopic(dp, 'KeyValue', None, [Reliable(),Persistent(), KeepLastHistory(1)])
-
+    t = FlexyTopic(dp, 'KeyValue', None, [Reliable(),TransientLocal(), DurabilityService([KeepLastHistory(10)])])
+    #t = FlexyTopic(dp, 'KeyValue', None, [Reliable(),TransientLocal(), DurabilityService([KeepLastHistory(10), ServiceCleanupDelay(1000000000)])])
     p = Publisher(dp, [Partition(['dds-python.demo'])])
-    w = FlexyWriter(p, t, [Reliable(),Persistent(), KeepLastHistory(1), ManualInstanceDispose()])
+    w = FlexyWriter(p, t, [Reliable(),TransientLocal(), KeepLastHistory(10), ManualInstanceDispose()])
 
     vpos = VehiclePosition(cid)
     dx = 1
@@ -55,6 +55,6 @@ if __name__ == '__main__':
         w.write(vpos)
         print('Wrote: {0}'.format(vpos))
         vpos.moveBy(dx, dy)
-        #print('Press a key to move the vehicle...')
-        #input()
-        time.sleep(0.5)
+        print('Press a key to move the vehicle...')
+        input()
+        #time.sleep(0.5)
