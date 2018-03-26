@@ -30,6 +30,9 @@ def onDataAvailable(r):
     for s in samples:
         if s[1].valid_data:
             print ('reader>> {0})'.format(s[0]))
+            
+def liveliness_changed(r, e):
+    print(">>>>> Changed Liveliness!!")
 
 def testDynaTypes():
     rt = Runtime()
@@ -39,6 +42,7 @@ def testDynaTypes():
     s = Subscriber(dp, [Partition(['dds-python.demo'])])
 
     dr = FlexyReader(s, t, [Reliable(), TransientLocal(), KeepLastHistory(1)], None)
+    dr.on_liveliness_changed(liveliness_changed)
 
     dr.wait_history(dds_secs(2))
 
